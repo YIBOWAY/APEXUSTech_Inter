@@ -1,0 +1,51 @@
+Project Background：
+
+Apexus specializes in developing quantitative strategy research and providing analytical solutions to retail/institutional clients. One of our key service offerings involves evaluating the effectiveness of classic quantitative strategies across different market conditions and asset classes. Our clients frequently request analysis on momentum strategies, which have shown varying performance patterns in recent years.The momentum effect, where assets that have performed well continue to outperform in the short term, is one of the most documented anomalies in financial markets. However, recent market volatility and changing investor behavior have raised questions about momentum strategy reliability. Our institutional clients need updated research on momentum factor performance to inform their strategy selection and risk management decisions.This project addresses a real client request: analyzing momentum strategy effectiveness across different sectors and market regimes to provide actionable insights for strategy implementation. The analysis will help our clients understand when momentum strategies work best and how to optimize their parameters for current market conditions.
+Project Goal:
+Develop a comprehensive analysis of momentum strategies using the technology sector (XLK ETF constituents) as a case study. The project should evaluate different momentum calculation methods, identify optimal lookback periods, and assess strategy performance across various market conditions. Results will be used to advise clients on momentum strategy implementation and parameter selection.
+Project Missions:
+Data Collection and Preparation:
+Extract price and volume data for all current XLK (Technology Select Sector SPDR Fund) constituents using yfinance. Clean the data to handle stock splits, dividends, and missing values. Create a standardized dataset covering the period from 2020 to present, ensuring data quality and consistency across all securities.
+Momentum Factor Construction:
+Implement three different momentum calculation methods: e.g. simple price momentum (3, 6, and 12-month lookbacks), risk-adjusted momentum using volatility scaling, and volume-weighted momentum incorporating trading activity. However, these 3 are not mandatory, you can refer to various references and sources and pick 3 that you think make sense to you. Calculate momentum scores for each stock and create factor rankings to identify top and bottom performers.
+Strategy Backtesting:
+Design and implement a long-short momentum strategy that goes long the top 20% momentum stocks and short the bottom 20%. Include realistic transaction costs (5 basis points) and implement monthly rebalancing. Calculate strategy returns, volatility, Sharpe ratio, and maximum drawdown metrics.
+Market Regime Analysis:
+Analyze momentum strategy performance during different market conditions including bull markets, bear markets, and high volatility periods. Use VIX levels and market returns to classify different regimes and evaluate how momentum effectiveness varies across these periods.
+Project Requirements:
+Technical Specifications:
+ Python implementation using pandas, numpy, plotly, and yfinance.
+ Modular code structure with clear function definitions and documentation.
+ Robust error handling for data issues and missing values.
+ Professional-quality visualizations showing strategy performance and factor analysis.
+ Statistical testing to validate momentum factor significance.
+Analysis Scope:
+ Focus on XLK constituents (approximately 75-80 technology stocks).
+ Recent 5-year analysis period covering different market cycles.
+ Monthly rebalancing frequency with transaction cost considerations for each stock.
+ Multiple momentum variants (3, 6, 12-month lookbacks).
+ Performance comparison against XLK benchmark.
+Deliverables:
+ Python Code Package.
+ Data extraction and cleaning scripts.
+ Momentum factor calculation functions.
+ Strategy backtesting framework.
+ Performance analysis and visualization tools.
+ Complete documentation and usage examples
+Research Report (8-12 pages):
+ Executive summary with key findings and client recommendations.
+ Methodology section explaining momentum calculations and strategy design.
+ Results analysis showing strategy performance across different periods.
+ Market regime analysis with practical implications.
+ Risk assessment including correlation analysis and stress testing.
+ Implementation recommendations for institutional clients.
+ Appendix with detailed performance statistics.
+Data Sources:
+ yfinance for stock prices, volumes, and XLK constituent data.
+ VIX data for market regime classification.
+ Risk-free rate data from FRED for Sharpe ratio calculations.
+ XLK ETF data for benchmark comparison.
+Expected Outcomes:
+The analysis should provide clear insights into momentum strategy effectiveness in the technology sector, identify optimal parameters for strategy implementation, and offer practical recommendations for institutional clients. Results should demonstrate understanding of quantitative strategy development while addressing real-world implementation considerations including costs, capacity, and risk management.
+Client Application:
+This research will be used to advise institutional clients on momentum strategy allocation decisions, help them understand the risk-return characteristics of momentum investing, and provide guidance on optimal implementation parameters. The analysis should be professional-grade and suitable for client presentation.
