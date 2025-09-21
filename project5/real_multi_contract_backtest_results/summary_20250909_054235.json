@@ -1,0 +1,66 @@
+{
+  "performance_metrics": {
+    "total_return": 0.004851130076142907,
+    "annual_return": 0.0011554676551871572,
+    "volatility": 0.0030354058167926857,
+    "sharpe_ratio": 0.3816163309677313,
+    "sortino_ratio": 0.6314663062960167,
+    "calmar_ratio": 1.9539569925811426,
+    "max_drawdown": -0.002482721008989379,
+    "max_drawdown_duration_days": 0,
+    "win_rate": 0.1315042573320719,
+    "profit_factor": 1.2973309378301225,
+    "skewness": 15.783112920188794,
+    "kurtosis": 335.3550368200517
+  },
+  "portfolio_summary": {
+    "total_return": 0.004851130076142843,
+    "max_drawdown": 0.002482721008989379,
+    "sharpe_ratio": 0.3816163309677313,
+    "sortino_ratio": 0.6314663062960167,
+    "total_trades": 72,
+    "final_value": 1004851.1300761428,
+    "total_commission": 768.0
+  },
+  "execution_summary": {
+    "total_executed_orders": 72,
+    "average_commission_per_trade": 10.666666666666666,
+    "average_slippage_per_trade": 12.806866533736931,
+    "total_transaction_cost": 1690.094390429059
+  },
+  "config": {
+    "data_path": "comprehensive_akshare_soybean_data.csv",
+    "symbols": [
+      "REAL_SOYBEAN_MULTI_CONTRACT"
+    ],
+    "start_date": "2020-01-02",
+    "end_date": "2024-12-31",
+    "strategy_name": "CalendarSpreadZScore",
+    "lookback_window": 50,
+    "z_threshold": 1.5,
+    "exit_z_threshold": 0.2,
+    "initial_capital": 1000000.0,
+    "position_size": 3,
+    "max_positions": 9,
+    "commission_per_trade": 2.0,
+    "slippage_per_trade": 1.5,
+    "commission_type": "fixed",
+    "commission_rate": 0.0001,
+    "rollover_method": "panama_canal",
+    "rollover_calendar_path": "smart_rollover_calendar.csv",
+    "run_optimization": false,
+    "optimization_params": {
+      "lookback_window": "range(20, 61, 10)",
+      "z_threshold": [
+        1.0,
+        1.5,
+        2.0,
+        2.5
+      ]
+    },
+    "monte_carlo_runs": 1000,
+    "save_results": true,
+    "output_dir": "real_multi_contract_backtest_results",
+    "plot_results": true
+  }
+}

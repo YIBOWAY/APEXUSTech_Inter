@@ -1,0 +1,66 @@
+{
+  "performance_metrics": {
+    "total_return": 0.0013462056271369427,
+    "annual_return": 0.0003206463308492529,
+    "volatility": 0.0028793796006721874,
+    "sharpe_ratio": 0.1128267192712875,
+    "sortino_ratio": 0.1531184467202147,
+    "calmar_ratio": 0.4343158273471007,
+    "max_drawdown": -0.0030996006647049244,
+    "max_drawdown_duration_days": 0,
+    "win_rate": 0.18070009460737937,
+    "profit_factor": 1.0543610464688182,
+    "skewness": 9.19023085513696,
+    "kurtosis": 142.37849589899605
+  },
+  "portfolio_summary": {
+    "total_return": 0.0013462056271369802,
+    "max_drawdown": 0.0030996006647049244,
+    "sharpe_ratio": 0.1128267192712875,
+    "sortino_ratio": 0.1531184467202147,
+    "total_trades": 96,
+    "final_value": 1001346.205627137,
+    "total_commission": 1152.0
+  },
+  "execution_summary": {
+    "total_executed_orders": 96,
+    "average_commission_per_trade": 12.0,
+    "average_slippage_per_trade": 13.42598052727945,
+    "total_transaction_cost": 2440.894130618827
+  },
+  "config": {
+    "data_path": "comprehensive_akshare_soybean_data.csv",
+    "symbols": [
+      "REAL_SOYBEAN_MULTI_CONTRACT"
+    ],
+    "start_date": "2020-01-02",
+    "end_date": "2024-12-31",
+    "strategy_name": "CalendarSpreadZScore",
+    "lookback_window": 40,
+    "z_threshold": 1.5,
+    "exit_z_threshold": 0.2,
+    "initial_capital": 1000000.0,
+    "position_size": 3,
+    "max_positions": 9,
+    "commission_per_trade": 2.0,
+    "slippage_per_trade": 1.5,
+    "commission_type": "fixed",
+    "commission_rate": 0.0001,
+    "rollover_method": "panama_canal",
+    "rollover_calendar_path": "smart_rollover_calendar.csv",
+    "run_optimization": false,
+    "optimization_params": {
+      "lookback_window": "range(20, 61, 10)",
+      "z_threshold": [
+        1.0,
+        1.5,
+        2.0,
+        2.5
+      ]
+    },
+    "monte_carlo_runs": 1000,
+    "save_results": true,
+    "output_dir": "real_multi_contract_backtest_results",
+    "plot_results": true
+  }
+}

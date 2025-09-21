@@ -1,0 +1,66 @@
+{
+  "performance_metrics": {
+    "total_return": 5.999999999950489e-06,
+    "annual_return": 1.4291115311791335e-06,
+    "volatility": 0.002484064571458825,
+    "sharpe_ratio": 0.0018173244957306964,
+    "sortino_ratio": 0.0015501778843068884,
+    "calmar_ratio": 0.0019142022900605403,
+    "max_drawdown": -0.003134464957598984,
+    "max_drawdown_duration_days": 0,
+    "win_rate": 0.47587511825922424,
+    "profit_factor": 1.000637949810868,
+    "skewness": -4.734546655451097,
+    "kurtosis": 80.95078786166532
+  },
+  "portfolio_summary": {
+    "total_return": 6e-06,
+    "max_drawdown": 0.003134464957598984,
+    "sharpe_ratio": 0.0018173244957306964,
+    "sortino_ratio": 0.0015501778843068884,
+    "total_trades": 2,
+    "final_value": 1000006.0,
+    "total_commission": 12.0
+  },
+  "execution_summary": {
+    "total_executed_orders": 2,
+    "average_commission_per_trade": 6.0,
+    "average_slippage_per_trade": 1.5,
+    "total_transaction_cost": 15.0
+  },
+  "config": {
+    "data_path": "comprehensive_akshare_soybean_data.csv",
+    "symbols": [
+      "REAL_SOYBEAN_MULTI_CONTRACT"
+    ],
+    "start_date": "2020-01-02",
+    "end_date": "2024-12-31",
+    "strategy_name": "CalendarSpreadZScore",
+    "lookback_window": 15,
+    "z_threshold": 1.0,
+    "exit_z_threshold": 0.2,
+    "initial_capital": 1000000.0,
+    "position_size": 3,
+    "max_positions": 9,
+    "commission_per_trade": 2.0,
+    "slippage_per_trade": 1.5,
+    "commission_type": "fixed",
+    "commission_rate": 0.0001,
+    "rollover_method": "panama_canal",
+    "rollover_calendar_path": "smart_rollover_calendar.csv",
+    "run_optimization": false,
+    "optimization_params": {
+      "lookback_window": "range(20, 61, 10)",
+      "z_threshold": [
+        1.0,
+        1.5,
+        2.0,
+        2.5
+      ]
+    },
+    "monte_carlo_runs": 1000,
+    "save_results": true,
+    "output_dir": "real_multi_contract_backtest_results",
+    "plot_results": true
+  }
+}

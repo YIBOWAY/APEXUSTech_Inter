@@ -1,0 +1,66 @@
+{
+  "performance_metrics": {
+    "total_return": -0.00223460596806091,
+    "annual_return": -0.0005214080592142123,
+    "volatility": 0.0032108896668524753,
+    "sharpe_ratio": -0.16111706656886615,
+    "sortino_ratio": -0.1255680706021419,
+    "calmar_ratio": -0.2552956577692819,
+    "max_drawdown": -0.008753012047233439,
+    "max_drawdown_duration_days": 0,
+    "win_rate": 0.09267840593141798,
+    "profit_factor": 0.9260246327468444,
+    "skewness": 6.5601798222674965,
+    "kurtosis": 141.00304424523907
+  },
+  "portfolio_summary": {
+    "total_return": -0.0022346059680609033,
+    "max_drawdown": 0.008753012047233439,
+    "sharpe_ratio": -0.16111706656886615,
+    "sortino_ratio": -0.1255680706021419,
+    "total_trades": 44,
+    "final_value": 498882.69701596955,
+    "total_commission": 198.0
+  },
+  "execution_summary": {
+    "total_executed_orders": 44,
+    "average_commission_per_trade": 4.5,
+    "average_slippage_per_trade": 3.1769165456845956,
+    "total_transaction_cost": 337.7843280101222
+  },
+  "config": {
+    "data_path": "processed_soybean_spread.csv",
+    "symbols": [
+      "SOYBEAN_MEAL"
+    ],
+    "start_date": "2020-01-02",
+    "end_date": "2024-12-31",
+    "strategy_name": "CalendarSpreadZScore",
+    "lookback_window": 30,
+    "z_threshold": 1.8,
+    "exit_z_threshold": 0.5,
+    "initial_capital": 500000.0,
+    "position_size": 3,
+    "max_positions": 6,
+    "commission_per_trade": 1.5,
+    "slippage_per_trade": 1.0,
+    "commission_type": "fixed",
+    "commission_rate": 0.0001,
+    "rollover_method": "panama_canal",
+    "rollover_calendar_path": "rollover_calendar.csv",
+    "run_optimization": false,
+    "optimization_params": {
+      "lookback_window": "range(20, 61, 10)",
+      "z_threshold": [
+        1.0,
+        1.5,
+        2.0,
+        2.5
+      ]
+    },
+    "monte_carlo_runs": 1000,
+    "save_results": true,
+    "output_dir": "backtest_results",
+    "plot_results": true
+  }
+}

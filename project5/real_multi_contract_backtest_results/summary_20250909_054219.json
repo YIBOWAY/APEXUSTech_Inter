@@ -1,0 +1,66 @@
+{
+  "performance_metrics": {
+    "total_return": 0.0026845753379254322,
+    "annual_return": 0.0006394262619633355,
+    "volatility": 0.0017725483336505307,
+    "sharpe_ratio": 0.3614808774885546,
+    "sortino_ratio": 0.484830430049376,
+    "calmar_ratio": 0.8453907276324574,
+    "max_drawdown": -0.003175543864129747,
+    "max_drawdown_duration_days": 0,
+    "win_rate": 0.08703878902554399,
+    "profit_factor": 1.2863536956167445,
+    "skewness": 13.67425593397478,
+    "kurtosis": 262.4672872215125
+  },
+  "portfolio_summary": {
+    "total_return": 0.0026845753379253438,
+    "max_drawdown": 0.003175543864129747,
+    "sharpe_ratio": 0.3614808774885546,
+    "sortino_ratio": 0.484830430049376,
+    "total_trades": 52,
+    "final_value": 1002684.5753379253,
+    "total_commission": 456.0
+  },
+  "execution_summary": {
+    "total_executed_orders": 52,
+    "average_commission_per_trade": 8.76923076923077,
+    "average_slippage_per_trade": 7.550315126382439,
+    "total_transaction_cost": 848.6163865718868
+  },
+  "config": {
+    "data_path": "comprehensive_akshare_soybean_data.csv",
+    "symbols": [
+      "REAL_SOYBEAN_MULTI_CONTRACT"
+    ],
+    "start_date": "2020-01-02",
+    "end_date": "2024-12-31",
+    "strategy_name": "CalendarSpreadZScore",
+    "lookback_window": 30,
+    "z_threshold": 3.0,
+    "exit_z_threshold": 0.2,
+    "initial_capital": 1000000.0,
+    "position_size": 3,
+    "max_positions": 9,
+    "commission_per_trade": 2.0,
+    "slippage_per_trade": 1.5,
+    "commission_type": "fixed",
+    "commission_rate": 0.0001,
+    "rollover_method": "panama_canal",
+    "rollover_calendar_path": "smart_rollover_calendar.csv",
+    "run_optimization": false,
+    "optimization_params": {
+      "lookback_window": "range(20, 61, 10)",
+      "z_threshold": [
+        1.0,
+        1.5,
+        2.0,
+        2.5
+      ]
+    },
+    "monte_carlo_runs": 1000,
+    "save_results": true,
+    "output_dir": "real_multi_contract_backtest_results",
+    "plot_results": true
+  }
+}

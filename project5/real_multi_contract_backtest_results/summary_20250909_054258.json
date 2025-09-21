@@ -1,0 +1,66 @@
+{
+  "performance_metrics": {
+    "total_return": 0.00782895202842493,
+    "annual_return": 0.0018647409368271097,
+    "volatility": 0.0023518303155927443,
+    "sharpe_ratio": 0.7917247407928137,
+    "sortino_ratio": 1.2741319198934224,
+    "calmar_ratio": 4.977384249223359,
+    "max_drawdown": -0.0015729048906856068,
+    "max_drawdown_duration_days": 0,
+    "win_rate": 0.09271523178807947,
+    "profit_factor": 1.8733052948555544,
+    "skewness": 15.341811071726907,
+    "kurtosis": 306.76955675723497
+  },
+  "portfolio_summary": {
+    "total_return": 0.007828952028424829,
+    "max_drawdown": 0.0015729048906856068,
+    "sharpe_ratio": 0.7917247407928137,
+    "sortino_ratio": 1.2741319198934224,
+    "total_trades": 40,
+    "final_value": 1007828.9520284248,
+    "total_commission": 336.0
+  },
+  "execution_summary": {
+    "total_executed_orders": 40,
+    "average_commission_per_trade": 8.4,
+    "average_slippage_per_trade": 2.838733096462499,
+    "total_transaction_cost": 449.5493238585
+  },
+  "config": {
+    "data_path": "comprehensive_akshare_soybean_data.csv",
+    "symbols": [
+      "REAL_SOYBEAN_MULTI_CONTRACT"
+    ],
+    "start_date": "2020-01-02",
+    "end_date": "2024-12-31",
+    "strategy_name": "CalendarSpreadZScore",
+    "lookback_window": 80,
+    "z_threshold": 2.0,
+    "exit_z_threshold": 0.2,
+    "initial_capital": 1000000.0,
+    "position_size": 3,
+    "max_positions": 9,
+    "commission_per_trade": 2.0,
+    "slippage_per_trade": 1.5,
+    "commission_type": "fixed",
+    "commission_rate": 0.0001,
+    "rollover_method": "panama_canal",
+    "rollover_calendar_path": "smart_rollover_calendar.csv",
+    "run_optimization": false,
+    "optimization_params": {
+      "lookback_window": "range(20, 61, 10)",
+      "z_threshold": [
+        1.0,
+        1.5,
+        2.0,
+        2.5
+      ]
+    },
+    "monte_carlo_runs": 1000,
+    "save_results": true,
+    "output_dir": "real_multi_contract_backtest_results",
+    "plot_results": true
+  }
+}

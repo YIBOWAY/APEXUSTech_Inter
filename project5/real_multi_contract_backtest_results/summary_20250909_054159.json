@@ -1,0 +1,66 @@
+{
+  "performance_metrics": {
+    "total_return": -0.013022845061662736,
+    "annual_return": -0.003101849674422504,
+    "volatility": 0.004904573854843413,
+    "sharpe_ratio": -0.6347474197486117,
+    "sortino_ratio": -0.918424011113217,
+    "calmar_ratio": -0.9961879652874827,
+    "max_drawdown": -0.013072678566142451,
+    "max_drawdown_duration_days": 0,
+    "win_rate": 0.23084200567644275,
+    "profit_factor": 0.767737218213516,
+    "skewness": 9.389183763300247,
+    "kurtosis": 157.1663143621509
+  },
+  "portfolio_summary": {
+    "total_return": -0.013022845061662723,
+    "max_drawdown": 0.013072678566142451,
+    "sharpe_ratio": -0.6347474197486117,
+    "sortino_ratio": -0.918424011113217,
+    "total_trades": 136,
+    "final_value": 986977.1549383373,
+    "total_commission": 1920.0
+  },
+  "execution_summary": {
+    "total_executed_orders": 136,
+    "average_commission_per_trade": 14.117647058823529,
+    "average_slippage_per_trade": 13.864225382350254,
+    "total_transaction_cost": 3805.5346519996347
+  },
+  "config": {
+    "data_path": "comprehensive_akshare_soybean_data.csv",
+    "symbols": [
+      "REAL_SOYBEAN_MULTI_CONTRACT"
+    ],
+    "start_date": "2020-01-02",
+    "end_date": "2024-12-31",
+    "strategy_name": "CalendarSpreadZScore",
+    "lookback_window": 20,
+    "z_threshold": 1.5,
+    "exit_z_threshold": 0.2,
+    "initial_capital": 1000000.0,
+    "position_size": 3,
+    "max_positions": 9,
+    "commission_per_trade": 2.0,
+    "slippage_per_trade": 1.5,
+    "commission_type": "fixed",
+    "commission_rate": 0.0001,
+    "rollover_method": "panama_canal",
+    "rollover_calendar_path": "smart_rollover_calendar.csv",
+    "run_optimization": false,
+    "optimization_params": {
+      "lookback_window": "range(20, 61, 10)",
+      "z_threshold": [
+        1.0,
+        1.5,
+        2.0,
+        2.5
+      ]
+    },
+    "monte_carlo_runs": 1000,
+    "save_results": true,
+    "output_dir": "real_multi_contract_backtest_results",
+    "plot_results": true
+  }
+}

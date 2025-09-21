@@ -1,0 +1,66 @@
+{
+  "performance_metrics": {
+    "total_return": 0.002887660149243798,
+    "annual_return": 0.0006877980695741371,
+    "volatility": 0.0012035906213866978,
+    "sharpe_ratio": 0.5717730640278834,
+    "sortino_ratio": 0.7678557509794498,
+    "calmar_ratio": 2.772680934868343,
+    "max_drawdown": -0.0010414686064052713,
+    "max_drawdown_duration_days": 0,
+    "win_rate": 0.0510879848628193,
+    "profit_factor": 1.668050287158162,
+    "skewness": 15.134276388000416,
+    "kurtosis": 289.13982584636085
+  },
+  "portfolio_summary": {
+    "total_return": 0.002887660149243893,
+    "max_drawdown": 0.0010414686064052713,
+    "sharpe_ratio": 0.5717730640278834,
+    "sortino_ratio": 0.7678557509794498,
+    "total_trades": 44,
+    "final_value": 1002887.6601492439,
+    "total_commission": 312.0
+  },
+  "execution_summary": {
+    "total_executed_orders": 44,
+    "average_commission_per_trade": 7.090909090909091,
+    "average_slippage_per_trade": 4.387423111789565,
+    "total_transaction_cost": 505.0466169187409
+  },
+  "config": {
+    "data_path": "comprehensive_akshare_soybean_data.csv",
+    "symbols": [
+      "REAL_SOYBEAN_MULTI_CONTRACT"
+    ],
+    "start_date": "2020-01-02",
+    "end_date": "2024-12-31",
+    "strategy_name": "CalendarSpreadZScore",
+    "lookback_window": 20,
+    "z_threshold": 3.0,
+    "exit_z_threshold": 0.2,
+    "initial_capital": 1000000.0,
+    "position_size": 3,
+    "max_positions": 9,
+    "commission_per_trade": 2.0,
+    "slippage_per_trade": 1.5,
+    "commission_type": "fixed",
+    "commission_rate": 0.0001,
+    "rollover_method": "panama_canal",
+    "rollover_calendar_path": "smart_rollover_calendar.csv",
+    "run_optimization": false,
+    "optimization_params": {
+      "lookback_window": "range(20, 61, 10)",
+      "z_threshold": [
+        1.0,
+        1.5,
+        2.0,
+        2.5
+      ]
+    },
+    "monte_carlo_runs": 1000,
+    "save_results": true,
+    "output_dir": "real_multi_contract_backtest_results",
+    "plot_results": true
+  }
+}
