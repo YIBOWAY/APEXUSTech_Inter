@@ -5,9 +5,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine, Base
 
+# Import models so they register with Base.metadata (must be before app creation)
+from app import models  # noqa: F401
+from app.routers import strategies, backtest, market_data
+
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(application: FastAPI):
     # Create tables on startup (dev convenience; use Alembic in production)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -22,11 +26,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Import models so they register with Base.metadata
-import app.models  # noqa: F401
-
-from app.routers import strategies, backtest, market_data  # noqa: E402
 
 app.include_router(strategies.router, prefix="/api")
 app.include_router(backtest.router, prefix="/api")

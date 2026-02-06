@@ -15,14 +15,14 @@ class Settings(BaseSettings):
 
     # XLK ETF 成分股列表 (66只)
     XLK_TICKERS: list[str] = [
-        "AAPL", "MSFT", "NVDA", "AVGO", "ORCL", "CRM", "AMD", "CSCO", "ACN", "ADBE",
-        "IBM", "NOW", "TXN", "QCOM", "INTU", "AMAT", "PANW", "MU", "ADI", "LRCX",
-        "KLAC", "SNPS", "CDNS", "APH", "MSI", "CRWD", "NXPI", "MCHP", "TEL", "ROP",
-        "FTNT", "ADSK", "DELL", "IT", "GLW", "HPQ", "MPWR", "ON", "FSLR", "ANSS",
-        "CDW", "TYL", "KEYS", "ZBRA", "HPE", "TDY", "TRMB", "PTC", "VRSN", "STX",
-        "NTAP", "SWKS", "GEN", "TER", "JNPR", "LDOS", "FFIV", "AKAM", "EPAM", "QRVO",
-        "WDC", "ENPH", "INTC", "PLTR", "MSTR", "SMCI",
-    ]
+    'AAPL', 'ACN', 'ADBE', 'ADI', 'AKAM', 'AMD', 'AMAT', 'ANET', 'APH', 'AVGO',
+    'CDNS', 'CDW', 'CRWD', 'CRM', 'CSCO', 'CTSH', 'DDOG', 'DELL', 'ENPH', 'EPAM',
+    'FICO', 'FFIV', 'FSLR', 'FTNT', 'GEN', 'GDDY', 'GLW', 'HPE', 'HPQ', 'IBM',
+    'INTC', 'INTU', 'IT', 'JBL', 'KEYS', 'KLAC', 'LRCX', 'MCHP', 'MPWR', 'MSI',
+    'MSFT', 'MU', 'NOW', 'NVDA', 'NXPI', 'ON', 'ORCL', 'PANW', 'PLTR', 'PTC',
+    'QCOM', 'ROP', 'SMCI', 'SNPS', 'STX', 'SWKS', 'TEL', 'TER', 'TDY', 'TXN',
+    'TYL', 'TRMB', 'VRSN', 'WDC', 'WDAY', 'ZBRA'
+]
 
     BENCHMARK_TICKERS: list[str] = ["XLK", "^VIX", "^IRX"]
 

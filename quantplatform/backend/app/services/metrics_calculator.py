@@ -79,15 +79,13 @@ def build_equity_curve(
     cumulative = (1 + monthly_returns).cumprod()
     strategy_values = cumulative * start_value
 
-    # Benchmark curve
+    # Benchmark curve - benchmark_prices is already aligned to strategy dates
     if benchmark_prices is not None and not benchmark_prices.empty:
-        # Align benchmark to monthly returns dates
-        bench_monthly = benchmark_prices.resample("ME").last()
-        # Reindex to match strategy dates
-        common_dates = strategy_values.index.intersection(bench_monthly.index)
-        if len(common_dates) > 0:
-            bench_aligned = bench_monthly.reindex(common_dates)
-            # Normalize to start_value
+        # Reindex to strategy dates, forward-fill any gaps
+        bench_aligned = benchmark_prices.reindex(strategy_values.index, method="ffill")
+        bench_aligned = bench_aligned.dropna()
+        if len(bench_aligned) > 0:
+            # Normalize: start at start_value
             bench_normalized = bench_aligned / bench_aligned.iloc[0] * start_value
         else:
             bench_normalized = pd.Series(start_value, index=strategy_values.index)

@@ -32,6 +32,10 @@ class BacktestRunOut(BaseModel):
     status: str
     started_at: str | None = None
     finished_at: str | None = None
+    param_method: str | None = None
+    param_lookback: int | None = None
+    param_start_date: str | None = None
+    param_end_date: str | None = None
     total_return: float | None = None
     annual_return: float | None = None
     annual_volatility: float | None = None
