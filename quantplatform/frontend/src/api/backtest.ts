@@ -92,6 +92,16 @@ export async function getEquityCurve(
   return response.data;
 }
 
+export interface MonthlyReturn {
+  date: string;
+  return: number;
+}
+
+export async function getMonthlyReturns(strategyId: string): Promise<MonthlyReturn[]> {
+  const response = await apiClient.get(`/backtest/${strategyId}/monthly-returns`);
+  return response.data;
+}
+
 export async function getTrades(
   strategyId: string,
   params?: { run_id?: string; page?: number; size?: number }

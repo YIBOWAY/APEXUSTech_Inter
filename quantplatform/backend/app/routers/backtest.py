@@ -6,7 +6,7 @@ Uses background threads for long-running backtests to avoid HTTP timeout.
 import asyncio
 import logging
 import threading
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -48,11 +48,9 @@ async def _run_backtest_async(
                 # Fetch price data
                 logger.info(f"[BG] Fetching data for {len(XLK_TICKERS)} tickers...")
                 tickers_with_benchmark = XLK_TICKERS + ["XLK", "^VIX", "^IRX"]
-                start_dt = datetime.strptime(request.start_date, "%Y-%m-%d").date()
-                end_dt = datetime.strptime(request.end_date, "%Y-%m-%d").date()
 
                 adj_close, volume = await fetch_and_cache_prices(
-                    db, tickers_with_benchmark, start_dt, end_dt
+                    db, tickers_with_benchmark, request.start_date, request.end_date
                 )
 
                 if adj_close.empty:
@@ -74,7 +72,7 @@ async def _run_backtest_async(
                 # Update backtest run with results
                 metrics = results["metrics"]
                 backtest_run.status = "completed"
-                backtest_run.finished_at = datetime.utcnow()
+                backtest_run.finished_at = datetime.now(timezone.utc)
                 backtest_run.total_return = metrics.get("total_return")
                 backtest_run.annual_return = metrics.get("annual_return")
                 backtest_run.annual_volatility = metrics.get("annual_volatility")
@@ -86,9 +84,9 @@ async def _run_backtest_async(
                 backtest_run.monthly_returns = results["monthly_returns"]
                 backtest_run.equity_curve = results["equity_curve"]
 
-                # Save trade signals
-                for sig in results["trade_signals"]:
-                    trade_signal = TradeSignal(
+                # Save trade signals in bulk
+                trade_signal_objects = [
+                    TradeSignal(
                         backtest_run_id=backtest_run.id,
                         signal_date=datetime.strptime(sig["signal_date"], "%Y-%m-%d").date(),
                         ticker=sig["ticker"],
@@ -97,7 +95,9 @@ async def _run_backtest_async(
                         score=sig.get("score"),
                         price=sig.get("price"),
                     )
-                    db.add(trade_signal)
+                    for sig in results["trade_signals"]
+                ]
+                db.add_all(trade_signal_objects)
 
                 await db.commit()
                 logger.info(f"[BG] Backtest completed: sharpe={backtest_run.sharpe_ratio:.3f}, total_return={backtest_run.total_return:.2%}")
@@ -110,7 +110,7 @@ async def _run_backtest_async(
                 backtest_run = result.scalar_one()
                 backtest_run.status = "failed"
                 backtest_run.error_message = str(e)
-                backtest_run.finished_at = datetime.utcnow()
+                backtest_run.finished_at = datetime.now(timezone.utc)
                 await db.commit()
     finally:
         await bg_engine.dispose()
@@ -153,8 +153,8 @@ async def run_backtest(
         status="running",
         param_method=request.method or strategy.method,
         param_lookback=request.lookback_months or strategy.lookback_months,
-        param_start_date=datetime.strptime(request.start_date, "%Y-%m-%d").date(),
-        param_end_date=datetime.strptime(request.end_date, "%Y-%m-%d").date(),
+        param_start_date=request.start_date,
+        param_end_date=request.end_date,
     )
     db.add(backtest_run)
     await db.commit()
@@ -231,6 +231,28 @@ async def get_equity_curve(
         return []
 
     return [EquityPointOut(**pt) for pt in run.equity_curve]
+
+
+@router.get("/{strategy_id}/monthly-returns")
+async def get_monthly_returns(
+    strategy_id: UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get monthly returns from the latest completed backtest."""
+    stmt = (
+        select(BacktestRun)
+        .where(BacktestRun.strategy_id == strategy_id)
+        .where(BacktestRun.status == "completed")
+        .order_by(BacktestRun.finished_at.desc())
+        .limit(1)
+    )
+    result = await db.execute(stmt)
+    run = result.scalar_one_or_none()
+
+    if not run or not run.monthly_returns:
+        return []
+
+    return run.monthly_returns
 
 
 @router.get("/{strategy_id}/trades", response_model=list[TradeOut])

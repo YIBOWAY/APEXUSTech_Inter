@@ -151,21 +151,24 @@ def backtest_strategy(
     winsor_q: float = 0.01,
 ) -> tuple[pd.Series, list[dict]]:
     """
-    Backtests a long-short momentum strategy with monthly rebalancing.
+    Backtests a long-only momentum strategy with monthly rebalancing.
+
+    Selects the top `decile` stocks by momentum score each month,
+    equal-weighted, with transaction costs.
 
     Parameters:
     - adj_close: DataFrame of adjusted close prices
     - volume: DataFrame of trading volumes
     - lookback_months: Lookback period (3, 6, 12)
     - method: 'simple', 'risk_adjusted', or 'volume_weighted'
-    - decile: The top/bottom quantile (0.2 = 20%)
+    - decile: The top quantile to go long (0.2 = top 20%)
     - tc_bps: Transaction cost per side in basis points
     - winsor_q: Winsorization quantile
 
     Returns:
     - Tuple of (monthly_returns Series, trade_signals list)
     """
-    daily_returns = adj_close.pct_change(fill_method=None)
+    daily_returns = adj_close.pct_change()
 
     # Get month-end dates
     month_ends = adj_close.resample("ME").last().index
@@ -185,6 +188,7 @@ def backtest_strategy(
         index=valid_month_ends[lookback_months:], dtype=float, name="Strategy Returns"
     )
     trade_signals: list[dict] = []
+    prev_long_stocks: list[str] = []
 
     # Monthly rebalancing loop
     for i in range(lookback_months, len(valid_month_ends)):
@@ -204,16 +208,14 @@ def backtest_strategy(
             portfolio_returns[current_date] = 0.0
             continue
 
-        # Rank and select
+        # Rank and select top decile for long
         num_stocks = len(scores)
         top_n = max(1, int(num_stocks * decile))
-        bottom_n = max(1, int(num_stocks * decile))
 
         ranks = scores.rank(ascending=False)
         long_stocks = scores[ranks <= top_n].index.tolist()
-        short_stocks = scores[ranks > num_stocks - bottom_n].index.tolist()
 
-        # Record trade signals
+        # Record trade signals (BUY for new positions)
         for ticker in long_stocks:
             price = adj_close.loc[previous_date, ticker] if ticker in adj_close.columns else None
             trade_signals.append({
@@ -221,16 +223,6 @@ def backtest_strategy(
                 "ticker": ticker,
                 "direction": "BUY",
                 "weight": 1.0 / len(long_stocks),
-                "score": float(scores[ticker]) if ticker in scores else None,
-                "price": float(price) if price is not None else None,
-            })
-        for ticker in short_stocks:
-            price = adj_close.loc[previous_date, ticker] if ticker in adj_close.columns else None
-            trade_signals.append({
-                "signal_date": previous_date.strftime("%Y-%m-%d"),
-                "ticker": ticker,
-                "direction": "SELL",
-                "weight": 1.0 / len(short_stocks),
                 "score": float(scores[ticker]) if ticker in scores else None,
                 "price": float(price) if price is not None else None,
             })
@@ -253,26 +245,26 @@ def backtest_strategy(
             upper = ret_next.quantile(1 - winsor_q)
             ret_next = ret_next.clip(lower, upper)
 
-        # Calculate returns
+        # Calculate long-only returns
         available_long = [s for s in long_stocks if s in ret_next.index]
-        available_short = [s for s in short_stocks if s in ret_next.index]
 
-        if len(available_long) == 0 or len(available_short) == 0:
+        if len(available_long) == 0:
             portfolio_returns[current_date] = 0.0
             continue
 
         long_ret = ret_next[available_long].mean()
-        short_ret = ret_next[available_short].mean()
 
-        if pd.isna(long_ret) or pd.isna(short_ret):
+        if pd.isna(long_ret):
             portfolio_returns[current_date] = 0.0
             continue
 
-        strategy_ret = long_ret - short_ret
-        tc = (tc_bps / 10000) * 2
-        strategy_ret -= tc
+        # Transaction cost: estimate turnover from portfolio changes
+        turnover = len(set(long_stocks) - set(prev_long_stocks)) / max(len(long_stocks), 1)
+        tc = (tc_bps / 10000) * 2 * turnover  # Only pay TC on changed positions
+        strategy_ret = long_ret - tc
 
         portfolio_returns[current_date] = strategy_ret
+        prev_long_stocks = long_stocks
 
     return portfolio_returns.dropna(), trade_signals
 
@@ -318,8 +310,15 @@ def run_full_backtest(
             "trade_signals": [],
         }
 
+    # Extract annualized risk-free rate from ^IRX (13-week T-Bill, quoted in %)
+    annual_rf = 0.0
+    if "^IRX" in adj_close.columns:
+        irx_series = adj_close["^IRX"].dropna()
+        if not irx_series.empty:
+            annual_rf = float(irx_series.mean()) / 100.0  # e.g. 4.5 -> 0.045
+
     # Calculate metrics
-    metrics = calculate_metrics(returns_series)
+    metrics = calculate_metrics(returns_series, annual_risk_free_rate=annual_rf)
 
     # Build equity curve
     benchmark_prices = None

@@ -4,11 +4,16 @@ import numpy as np
 import pandas as pd
 
 
-def calculate_metrics(monthly_returns: pd.Series) -> dict:
+def calculate_metrics(
+    monthly_returns: pd.Series,
+    annual_risk_free_rate: float = 0.0,
+) -> dict:
     """Calculate full performance metrics from monthly return series.
 
     Args:
         monthly_returns: pd.Series of monthly strategy returns (e.g. 0.023 = 2.3%)
+        annual_risk_free_rate: Annualized risk-free rate (e.g. 0.05 = 5%).
+            Sourced from ^IRX (13-week T-Bill rate).
 
     Returns:
         dict with keys: total_return, annual_return, annual_volatility,
@@ -26,17 +31,21 @@ def calculate_metrics(monthly_returns: pd.Series) -> dict:
             "total_months": 0,
         }
 
-    monthly_mean = monthly_returns.mean()
     monthly_std = monthly_returns.std()
-
-    # Annualize
-    annual_return = (1 + monthly_mean) ** 12 - 1
-    annual_vol = monthly_std * np.sqrt(12)
-    sharpe = annual_return / annual_vol if annual_vol > 0 else 0.0
 
     # Cumulative return
     cumulative = (1 + monthly_returns).cumprod()
     total_return = float(cumulative.iloc[-1] - 1)
+
+    # Geometric annualized return: (1 + total_return)^(12/n) - 1
+    n_months = len(monthly_returns)
+    annual_return = (1 + total_return) ** (12 / n_months) - 1
+
+    # Annualized volatility
+    annual_vol = monthly_std * np.sqrt(12)
+
+    # Sharpe ratio with risk-free rate
+    sharpe = (annual_return - annual_risk_free_rate) / annual_vol if annual_vol > 0 else 0.0
 
     # Max drawdown
     running_max = cumulative.cummax()
@@ -59,7 +68,7 @@ def calculate_metrics(monthly_returns: pd.Series) -> dict:
         "max_drawdown": round(max_drawdown, 6),
         "win_rate": round(win_rate, 4),
         "profit_factor": round(profit_factor, 4),
-        "total_months": len(monthly_returns),
+        "total_months": n_months,
     }
 
 

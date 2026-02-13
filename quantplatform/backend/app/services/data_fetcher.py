@@ -3,8 +3,8 @@
 Uses direct Yahoo Finance API requests (not yfinance library).
 """
 
+import asyncio
 import logging
-import time
 from datetime import date, datetime
 
 import pandas as pd
@@ -41,6 +41,7 @@ def _fetch_yahoo_single(
 
     try:
         response = requests.get(url, headers=YAHOO_HEADERS, timeout=30)
+        response.raise_for_status()
         data = response.json()
 
         if "chart" in data and "result" in data["chart"] and data["chart"]["result"]:
@@ -195,7 +196,7 @@ async def fetch_and_cache_prices(
                 logger.warning(f"  {ticker}: fetch failed, skipping")
 
             # Small delay to be respectful to Yahoo's servers
-            time.sleep(0.3)
+            await asyncio.sleep(0.3)
 
     # Build DataFrames
     if not adj_close_dict:

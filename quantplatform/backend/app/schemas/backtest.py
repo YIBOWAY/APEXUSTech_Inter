@@ -1,9 +1,11 @@
+from datetime import date
+
 from pydantic import BaseModel
 
 
 class BacktestRequest(BaseModel):
-    start_date: str = "2020-01-01"
-    end_date: str = "2026-01-30"
+    start_date: date = date(2020, 1, 1)
+    end_date: date = date(2025, 12, 31)
     method: str | None = None
     lookback_months: int | None = None
 

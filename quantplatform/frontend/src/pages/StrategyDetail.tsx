@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRoute } from "wouter";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { MetricCard } from "@/components/ui/metric-card";
@@ -13,9 +13,17 @@ import {
   Settings2,
   Download,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -26,8 +34,8 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { getStrategy } from "@/api/strategies";
-import { runBacktestWithPolling, getEquityCurve, getTrades } from "@/api/backtest";
-import type { BacktestRunResult } from "@/api/backtest";
+import { runBacktestWithPolling, getEquityCurve, getTrades, getMonthlyReturns } from "@/api/backtest";
+import type { BacktestRunResult, MonthlyReturn } from "@/api/backtest";
 import type { Strategy, EquityPoint, Trade } from "@/types";
 
 export default function StrategyDetail() {
@@ -41,33 +49,40 @@ export default function StrategyDetail() {
   const [error, setError] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [runStatus, setRunStatus] = useState<string>("");
+  const [showAllTrades, setShowAllTrades] = useState(false);
+  const [allTrades, setAllTrades] = useState<Trade[]>([]);
+  const [allTradesLoading, setAllTradesLoading] = useState(false);
+  const [tradePage, setTradePage] = useState(1);
+  const [monthlyReturns, setMonthlyReturns] = useState<MonthlyReturn[]>([]);
 
-  useEffect(() => {
-    if (id) {
-      loadData();
-    }
-  }, [id]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!id) return;
     try {
       setLoading(true);
       setError(null);
-      const [strategyData, equityDataRes, tradesData] = await Promise.all([
+      const [strategyData, equityDataRes, tradesData, monthlyReturnsRes] = await Promise.all([
         getStrategy(id),
         getEquityCurve(id).catch(() => []),
         getTrades(id).catch(() => []),
+        getMonthlyReturns(id).catch(() => []),
       ]);
       setStrategy(strategyData);
       setEquityData(equityDataRes);
       setTrades(tradesData);
+      setMonthlyReturns(monthlyReturnsRes);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load strategy");
       console.error("Failed to load strategy:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      loadData();
+    }
+  }, [id, loadData]);
 
   const handleRunBacktest = async () => {
     if (!id) return;
@@ -77,10 +92,7 @@ export default function StrategyDetail() {
     try {
       await runBacktestWithPolling(
         id,
-        {
-          start_date: "2020-01-01",
-          end_date: "2026-01-30",
-        },
+        {},  // use backend default date range
         (status: BacktestRunResult) => {
           if (status.status === "running") {
             setRunStatus("Fetching data & running backtest...");
@@ -99,6 +111,98 @@ export default function StrategyDetail() {
     } finally {
       setIsRunning(false);
     }
+  };
+
+  const handleViewAllTrades = async () => {
+    if (!id) return;
+    setShowAllTrades(true);
+    setAllTradesLoading(true);
+    setTradePage(1);
+    try {
+      const pageSize = 500;
+      let page = 1;
+      const all: Trade[] = [];
+
+      while (true) {
+        const chunk = await getTrades(id, { page, size: pageSize });
+        all.push(...chunk);
+        if (chunk.length < pageSize) break;
+        page += 1;
+      }
+
+      setAllTrades(all);
+    } catch (err) {
+      console.error("Failed to load all trades:", err);
+    } finally {
+      setAllTradesLoading(false);
+    }
+  };
+
+  // Group trades by date for display
+  const groupTradesByDate = (tradeList: Trade[]) => {
+    const groups: Record<string, Trade[]> = {};
+    for (const t of tradeList) {
+      const date = t.timestamp || "unknown";
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(t);
+    }
+    return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
+  };
+
+  const groupedTrades = useMemo(() => groupTradesByDate(allTrades), [allTrades]);
+  const totalPages = groupedTrades.length;
+  const pagedTradeGroups = useMemo(() => {
+    if (totalPages === 0) return [];
+    const safePage = Math.min(Math.max(tradePage, 1), totalPages);
+    return [groupedTrades[safePage - 1]];
+  }, [groupedTrades, totalPages, tradePage]);
+
+  useEffect(() => {
+    if (totalPages > 0 && tradePage > totalPages) {
+      setTradePage(totalPages);
+    }
+  }, [tradePage, totalPages]);
+
+  const monthlyPerfMap = useMemo(() => {
+    const perfMap = new Map<string, { monthlyReturn?: number; monthlyPnl?: number }>();
+    const returnMap = new Map(monthlyReturns.map((r) => [r.date, r.return]));
+    const sortedEquity = [...equityData].sort((a, b) => a.date.localeCompare(b.date));
+
+    for (let i = 0; i < sortedEquity.length; i += 1) {
+      const current = sortedEquity[i];
+      const currentReturn = returnMap.get(current.date);
+      let monthlyPnl: number | undefined;
+
+      if (i === 0) {
+        if (
+          currentReturn !== undefined &&
+          Number.isFinite(currentReturn) &&
+          currentReturn > -0.999999
+        ) {
+          const prevValue = current.value / (1 + currentReturn);
+          monthlyPnl = current.value - prevValue;
+        }
+      } else {
+        monthlyPnl = current.value - sortedEquity[i - 1].value;
+      }
+
+      perfMap.set(current.date, {
+        monthlyReturn: currentReturn,
+        monthlyPnl,
+      });
+    }
+
+    return perfMap;
+  }, [monthlyReturns, equityData]);
+
+  const formatSignedCurrency = (value?: number) => {
+    if (value === undefined || Number.isNaN(value)) return "-";
+    return `${value >= 0 ? "+" : "-"}$${Math.abs(value).toFixed(2)}`;
+  };
+
+  const formatSignedPercent = (value?: number) => {
+    if (value === undefined || Number.isNaN(value)) return "-";
+    return `${value >= 0 ? "+" : ""}${(value * 100).toFixed(2)}%`;
   };
 
   if (loading) {
@@ -180,25 +284,20 @@ export default function StrategyDetail() {
           <MetricCard
             title="Total Return"
             value={metrics.total_return ? `${(metrics.total_return * 100).toFixed(1)}%` : 'N/A'}
-            trend={metrics.total_return ? 12.5 : undefined}
             prefix={metrics.total_return && metrics.total_return > 0 ? "+" : ""}
           />
           <MetricCard
             title="Sharpe Ratio"
             value={metrics.sharpe_ratio ? metrics.sharpe_ratio.toFixed(2) : 'N/A'}
-            trend={metrics.sharpe_ratio ? 0.4 : undefined}
           />
           <MetricCard
             title="Max Drawdown"
             value={metrics.max_drawdown ? `${(metrics.max_drawdown * 100).toFixed(1)}%` : 'N/A'}
-            trend={metrics.max_drawdown ? -2.1 : undefined}
             valueClassName="text-destructive"
           />
           <MetricCard
             title="Win Rate"
             value={metrics.win_rate ? `${(metrics.win_rate * 100).toFixed(0)}%` : 'N/A'}
-            suffix=""
-            trend={metrics.win_rate ? 5.2 : undefined}
           />
         </div>
 
@@ -236,8 +335,23 @@ export default function StrategyDetail() {
             {/* Recent Trades (1/3) */}
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm flex flex-col">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Recent Trades</CardTitle>
-                <Button variant="ghost" size="sm" className="h-8 text-xs">View All</Button>
+                <div>
+                  <CardTitle>Recent Trades</CardTitle>
+                  {trades.length > 0 && trades[0].timestamp && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Latest: {format(new Date(trades[0].timestamp), 'yyyy-MM-dd')}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={handleViewAllTrades}
+                  disabled={trades.length === 0}
+                >
+                  View All
+                </Button>
               </CardHeader>
               <CardContent className="flex-1 p-0">
                 <ScrollArea className="h-[400px]">
@@ -262,7 +376,7 @@ export default function StrategyDetail() {
                             <TableCell className="font-medium font-mono text-xs">
                               {trade.symbol}
                               <div className="text-[10px] text-muted-foreground">
-                                {trade.timestamp ? format(new Date(trade.timestamp), 'MM-dd') : '-'}
+                                {trade.timestamp ? format(new Date(trade.timestamp), 'yyyy-MM-dd') : '-'}
                               </div>
                             </TableCell>
                             <TableCell>
@@ -309,6 +423,113 @@ export default function StrategyDetail() {
             </Card>
           </div>
         )}
+        {/* All Trades Dialog */}
+        <Dialog open={showAllTrades} onOpenChange={setShowAllTrades}>
+          <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle>All Trade Signals — {strategy.name}</DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                {allTrades.length} total signals | {totalPages} rebalance months | Month {Math.min(tradePage, Math.max(totalPages, 1))}/{Math.max(totalPages, 1)}
+              </p>
+            </DialogHeader>
+            {allTradesLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <>
+                <ScrollArea className="flex-1 min-h-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Monthly PnL</TableHead>
+                        <TableHead>Symbol</TableHead>
+                        <TableHead>Side</TableHead>
+                        <TableHead className="text-right">Weight</TableHead>
+                        <TableHead className="text-right">Price</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pagedTradeGroups.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground">
+                            No trades yet
+                          </TableCell>
+                        </TableRow>
+                      ) : pagedTradeGroups.map(([date, dateTrades]) => (
+                        dateTrades.map((trade, idx) => (
+                          <TableRow key={trade.id} className={idx === 0 ? "border-t-2 border-border/80" : ""}>
+                            {idx === 0 ? (
+                              <TableCell rowSpan={dateTrades.length} className="font-mono text-xs font-medium align-top whitespace-nowrap">
+                                {format(new Date(date), 'yyyy-MM-dd')}
+                                <div className="text-[10px] text-muted-foreground">
+                                  {dateTrades.length} signals
+                                </div>
+                              </TableCell>
+                            ) : null}
+                            {idx === 0 ? (
+                              <TableCell rowSpan={dateTrades.length} className="text-right align-top whitespace-nowrap">
+                                <div className={`font-mono text-xs font-medium ${(monthlyPerfMap.get(date)?.monthlyPnl ?? 0) >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
+                                  {formatSignedCurrency(monthlyPerfMap.get(date)?.monthlyPnl)}
+                                </div>
+                                <div className={`text-[10px] ${(monthlyPerfMap.get(date)?.monthlyReturn ?? 0) >= 0 ? "text-emerald-400/90" : "text-rose-400/90"}`}>
+                                  {formatSignedPercent(monthlyPerfMap.get(date)?.monthlyReturn)}
+                                </div>
+                              </TableCell>
+                            ) : null}
+                            <TableCell className="font-mono text-sm font-medium">
+                              {trade.symbol}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="secondary"
+                                className={trade.direction === 'BUY' ? 'text-emerald-500 bg-emerald-500/10' : 'text-rose-500 bg-rose-500/10'}
+                              >
+                                {trade.direction}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-xs">
+                              {(trade.quantity * 100).toFixed(1)}%
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-xs">
+                              {trade.price > 0 ? `$${trade.price.toFixed(2)}` : '-'}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setTradePage(p => Math.max(1, p - 1))}
+                      disabled={tradePage <= 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" /> Prev
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      Month {tradePage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setTradePage(p => Math.min(totalPages, p + 1))}
+                      disabled={tradePage >= totalPages}
+                    >
+                      Next <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
