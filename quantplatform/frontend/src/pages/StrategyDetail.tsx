@@ -271,67 +271,69 @@ export default function StrategyDetail() {
               {strategy.description || `Momentum strategy using ${strategy.method || 'simple'} method with ${strategy.lookback_months || 6} month lookback`}
             </p>
           </div>
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="flex items-center gap-2">
-              <Popover open={startOpen} onOpenChange={setStartOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className={cn("w-[150px] justify-start text-left font-mono text-xs h-9", !startDate && "text-muted-foreground")}>
-                    <CalendarDays className="mr-2 h-3.5 w-3.5" />
-                    {format(startDate, "yyyy-MM-dd")}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    captionLayout="dropdown"
-                    selected={startDate}
-                    onSelect={(date) => { if (date) { setStartDate(date); setStartOpen(false); } }}
-                    disabled={(date) => date > endDate || date > new Date()}
-                    defaultMonth={startDate}
-                    startMonth={new Date(2005, 0)}
-                    endMonth={new Date(new Date().getFullYear(), 11)}
-                  />
-                </PopoverContent>
-              </Popover>
-              <span className="text-muted-foreground text-sm">—</span>
-              <Popover open={endOpen} onOpenChange={setEndOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className={cn("w-[150px] justify-start text-left font-mono text-xs h-9", !endDate && "text-muted-foreground")}>
-                    <CalendarDays className="mr-2 h-3.5 w-3.5" />
-                    {format(endDate, "yyyy-MM-dd")}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    captionLayout="dropdown"
-                    selected={endDate}
-                    onSelect={(date) => { if (date) { setEndDate(date); setEndOpen(false); } }}
-                    disabled={(date) => date < startDate || date > new Date()}
-                    defaultMonth={endDate}
-                    startMonth={new Date(2005, 0)}
-                    endMonth={new Date(new Date().getFullYear(), 11)}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Settings2 className="mr-2 h-4 w-4" /> Configure
-              </Button>
-              <Button variant="outline" size="sm">
-                <Download className="mr-2 h-4 w-4" /> Export
-              </Button>
-              <Button onClick={handleRunBacktest} disabled={isRunning} className="bg-primary hover:bg-primary/90">
-                {isRunning ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {runStatus || "Running..."}</>
-                ) : (
-                  <><Play className="mr-2 h-4 w-4" /> Run Backtest</>
-                )}
-              </Button>
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Popover open={startOpen} onOpenChange={setStartOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className={cn("w-[150px] justify-start text-left font-mono text-xs h-9", !startDate && "text-muted-foreground")}>
+                      <CalendarDays className="mr-2 h-3.5 w-3.5" />
+                      {format(startDate, "yyyy-MM-dd")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      captionLayout="dropdown"
+                      selected={startDate}
+                      onSelect={(date) => { if (date) { setStartDate(date); setStartOpen(false); } }}
+                      disabled={(date) => date > endDate || date > new Date()}
+                      defaultMonth={startDate}
+                      startMonth={new Date(2005, 0)}
+                      endMonth={new Date(new Date().getFullYear(), 11)}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <span className="text-muted-foreground text-sm">—</span>
+                <Popover open={endOpen} onOpenChange={setEndOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className={cn("w-[150px] justify-start text-left font-mono text-xs h-9", !endDate && "text-muted-foreground")}>
+                      <CalendarDays className="mr-2 h-3.5 w-3.5" />
+                      {format(endDate, "yyyy-MM-dd")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      captionLayout="dropdown"
+                      selected={endDate}
+                      onSelect={(date) => { if (date) { setEndDate(date); setEndOpen(false); } }}
+                      disabled={(date) => date < startDate || date > new Date()}
+                      defaultMonth={endDate}
+                      startMonth={new Date(2005, 0)}
+                      endMonth={new Date(new Date().getFullYear(), 11)}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm">
+                  <Settings2 className="mr-2 h-4 w-4" /> Configure
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Download className="mr-2 h-4 w-4" /> Export
+                </Button>
+                <Button onClick={handleRunBacktest} disabled={isRunning} className="bg-primary hover:bg-primary/90">
+                  {isRunning ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {runStatus || "Running..."}</>
+                  ) : (
+                    <><Play className="mr-2 h-4 w-4" /> Run Backtest</>
+                  )}
+                </Button>
+              </div>
             </div>
             {strategy.lookback_months && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Info className="h-3 w-3 shrink-0" />
                 First {strategy.lookback_months} months are lookback warmup — trading starts from month {strategy.lookback_months + 1}.
               </p>
