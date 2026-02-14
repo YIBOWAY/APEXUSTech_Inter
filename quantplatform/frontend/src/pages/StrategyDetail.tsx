@@ -8,8 +8,8 @@ import { HeatmapChart } from "@/components/charts/HeatmapChart";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Play,
   Settings2,
@@ -18,7 +18,9 @@ import {
   ChevronLeft,
   ChevronRight,
   CalendarDays,
+  Info,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -57,8 +59,10 @@ export default function StrategyDetail() {
   const [allTradesLoading, setAllTradesLoading] = useState(false);
   const [tradePage, setTradePage] = useState(1);
   const [monthlyReturns, setMonthlyReturns] = useState<MonthlyReturn[]>([]);
-  const [startDate, setStartDate] = useState("2020-01-01");
-  const [endDate, setEndDate] = useState("2025-12-31");
+  const [startDate, setStartDate] = useState<Date>(new Date(2020, 0, 1));
+  const [endDate, setEndDate] = useState<Date>(new Date(2025, 11, 31));
+  const [startOpen, setStartOpen] = useState(false);
+  const [endOpen, setEndOpen] = useState(false);
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -97,7 +101,7 @@ export default function StrategyDetail() {
     try {
       await runBacktestWithPolling(
         id,
-        { start_date: startDate, end_date: endDate },
+        { start_date: format(startDate, "yyyy-MM-dd"), end_date: format(endDate, "yyyy-MM-dd") },
         (status: BacktestRunResult) => {
           if (status.status === "running") {
             setRunStatus("Fetching data & running backtest...");
@@ -268,34 +272,48 @@ export default function StrategyDetail() {
             </p>
           </div>
           <div className="flex flex-wrap items-end gap-3">
-            <div className="flex items-end gap-2">
-              <div className="space-y-1">
-                <Label htmlFor="start-date" className="text-xs text-muted-foreground flex items-center gap-1">
-                  <CalendarDays className="h-3 w-3" /> Start
-                </Label>
-                <Input
-                  id="start-date"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="h-9 w-[140px] font-mono text-xs"
-                  min="2005-01-01"
-                  max={endDate}
-                />
-              </div>
-              <span className="text-muted-foreground text-sm pb-1.5">—</span>
-              <div className="space-y-1">
-                <Label htmlFor="end-date" className="text-xs text-muted-foreground">End</Label>
-                <Input
-                  id="end-date"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="h-9 w-[140px] font-mono text-xs"
-                  min={startDate}
-                  max={new Date().toISOString().split("T")[0]}
-                />
-              </div>
+            <div className="flex items-center gap-2">
+              <Popover open={startOpen} onOpenChange={setStartOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("w-[150px] justify-start text-left font-mono text-xs h-9", !startDate && "text-muted-foreground")}>
+                    <CalendarDays className="mr-2 h-3.5 w-3.5" />
+                    {format(startDate, "yyyy-MM-dd")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    captionLayout="dropdown"
+                    selected={startDate}
+                    onSelect={(date) => { if (date) { setStartDate(date); setStartOpen(false); } }}
+                    disabled={(date) => date > endDate || date > new Date()}
+                    defaultMonth={startDate}
+                    startMonth={new Date(2005, 0)}
+                    endMonth={new Date(new Date().getFullYear(), 11)}
+                  />
+                </PopoverContent>
+              </Popover>
+              <span className="text-muted-foreground text-sm">—</span>
+              <Popover open={endOpen} onOpenChange={setEndOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("w-[150px] justify-start text-left font-mono text-xs h-9", !endDate && "text-muted-foreground")}>
+                    <CalendarDays className="mr-2 h-3.5 w-3.5" />
+                    {format(endDate, "yyyy-MM-dd")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    captionLayout="dropdown"
+                    selected={endDate}
+                    onSelect={(date) => { if (date) { setEndDate(date); setEndOpen(false); } }}
+                    disabled={(date) => date < startDate || date > new Date()}
+                    defaultMonth={endDate}
+                    startMonth={new Date(2005, 0)}
+                    endMonth={new Date(new Date().getFullYear(), 11)}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm">
@@ -312,6 +330,12 @@ export default function StrategyDetail() {
                 )}
               </Button>
             </div>
+            {strategy.lookback_months && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                <Info className="h-3 w-3 shrink-0" />
+                First {strategy.lookback_months} months are lookback warmup — trading starts from month {strategy.lookback_months + 1}.
+              </p>
+            )}
           </div>
         </div>
 
