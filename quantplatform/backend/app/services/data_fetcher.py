@@ -167,18 +167,30 @@ async def fetch_and_cache_prices(
     volume_dict: dict[str, pd.Series] = {}
     tickers_to_fetch: list[str] = []
 
-    # Check which tickers have sufficient cached data
+    # Check which tickers have sufficient cached data covering the requested range
     for ticker in tickers:
         if ticker in cached and len(cached[ticker]) > 10:
             rows = cached[ticker]
-            dates = pd.DatetimeIndex([r.trade_date for r in rows])
-            adj_close_dict[ticker] = pd.Series(
-                [r.adj_close for r in rows], index=dates, name=ticker, dtype=float
-            )
-            volume_dict[ticker] = pd.Series(
-                [r.volume for r in rows], index=dates, name=ticker, dtype=float
-            )
-            logger.info(f"  {ticker}: {len(rows)} rows from cache")
+            earliest_cached = min(r.trade_date for r in rows)
+            # If cached data starts >30 days after requested start,
+            # we're missing early data — need to re-fetch the full range.
+            # Yahoo returns the complete range; ON CONFLICT DO NOTHING
+            # skips dates already in DB.
+            if (earliest_cached - start_date).days > 30:
+                tickers_to_fetch.append(ticker)
+                logger.info(
+                    f"  {ticker}: cache starts at {earliest_cached}, "
+                    f"but requested {start_date} — will re-fetch"
+                )
+            else:
+                dates = pd.DatetimeIndex([r.trade_date for r in rows])
+                adj_close_dict[ticker] = pd.Series(
+                    [r.adj_close for r in rows], index=dates, name=ticker, dtype=float
+                )
+                volume_dict[ticker] = pd.Series(
+                    [r.volume for r in rows], index=dates, name=ticker, dtype=float
+                )
+                logger.info(f"  {ticker}: {len(rows)} rows from cache")
         else:
             tickers_to_fetch.append(ticker)
 

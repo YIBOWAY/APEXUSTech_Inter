@@ -8,6 +8,8 @@ import { HeatmapChart } from "@/components/charts/HeatmapChart";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Play,
   Settings2,
@@ -15,6 +17,7 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  CalendarDays,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -54,6 +57,8 @@ export default function StrategyDetail() {
   const [allTradesLoading, setAllTradesLoading] = useState(false);
   const [tradePage, setTradePage] = useState(1);
   const [monthlyReturns, setMonthlyReturns] = useState<MonthlyReturn[]>([]);
+  const [startDate, setStartDate] = useState("2020-01-01");
+  const [endDate, setEndDate] = useState("2025-12-31");
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -92,7 +97,7 @@ export default function StrategyDetail() {
     try {
       await runBacktestWithPolling(
         id,
-        {},  // use backend default date range
+        { start_date: startDate, end_date: endDate },
         (status: BacktestRunResult) => {
           if (status.status === "running") {
             setRunStatus("Fetching data & running backtest...");
@@ -262,20 +267,51 @@ export default function StrategyDetail() {
               {strategy.description || `Momentum strategy using ${strategy.method || 'simple'} method with ${strategy.lookback_months || 6} month lookback`}
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <Settings2 className="mr-2 h-4 w-4" /> Configure
-            </Button>
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" /> Export
-            </Button>
-            <Button onClick={handleRunBacktest} disabled={isRunning} className="bg-primary hover:bg-primary/90">
-              {isRunning ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {runStatus || "Running..."}</>
-              ) : (
-                <><Play className="mr-2 h-4 w-4" /> Run Backtest</>
-              )}
-            </Button>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex items-end gap-2">
+              <div className="space-y-1">
+                <Label htmlFor="start-date" className="text-xs text-muted-foreground flex items-center gap-1">
+                  <CalendarDays className="h-3 w-3" /> Start
+                </Label>
+                <Input
+                  id="start-date"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="h-9 w-[140px] font-mono text-xs"
+                  min="2005-01-01"
+                  max={endDate}
+                />
+              </div>
+              <span className="text-muted-foreground text-sm pb-1.5">—</span>
+              <div className="space-y-1">
+                <Label htmlFor="end-date" className="text-xs text-muted-foreground">End</Label>
+                <Input
+                  id="end-date"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="h-9 w-[140px] font-mono text-xs"
+                  min={startDate}
+                  max={new Date().toISOString().split("T")[0]}
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm">
+                <Settings2 className="mr-2 h-4 w-4" /> Configure
+              </Button>
+              <Button variant="outline" size="sm">
+                <Download className="mr-2 h-4 w-4" /> Export
+              </Button>
+              <Button onClick={handleRunBacktest} disabled={isRunning} className="bg-primary hover:bg-primary/90">
+                {isRunning ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {runStatus || "Running..."}</>
+                ) : (
+                  <><Play className="mr-2 h-4 w-4" /> Run Backtest</>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
 
